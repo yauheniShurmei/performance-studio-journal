@@ -1,0 +1,27 @@
+.main {
+  font-size: 15px;
+  display: flex;
+
+  button {
+    font-size: 15px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+  }
+  button:hover,
+  a:hover {
+    transition: 0.1s;
+    color: #ffc300;
+  }
+
+  button,
+  a {
+    margin: 10px;
+  }
+
+  li {
+    margin: 5px;
+    list-style-type: none;
+    cursor: pointer;
+  }
+}

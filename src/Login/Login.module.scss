@@ -1,0 +1,41 @@
+.section {
+  width: 100%;
+  height: 100%;
+  background-color: rgb(238, 238, 238);
+  height: 100vh;
+  display: flex;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  width: 30%;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+
+  border-radius: 10px;
+  background-color: white;
+}
+.main form {
+  display: flex;
+  flex-direction: column;
+  padding: 5%;
+  width: 90%;
+  * {
+    margin: 5px 0 10px 0;
+    line-height: 1.4rem;
+  }
+  span,
+  a {
+    margin-top: 0;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  p {
+    color: red;
+    margin-top: 0;
+    font-size: 0.8rem;
+  }
+}

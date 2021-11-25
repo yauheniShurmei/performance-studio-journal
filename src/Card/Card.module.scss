@@ -1,0 +1,53 @@
+.main {
+  top: 30vh;
+  left: 30%;
+  width: 80%;
+  z-index: 100;
+  overflow: hidden;
+
+  position: absolute;
+  width: 40%;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  background-color: white;
+  border: 1px solid black;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  button {
+    width: 30%;
+  }
+  * {
+    margin: 10px;
+  }
+}
+.open {
+  display: block;
+}
+.close {
+  display: none;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  p {
+    color: red;
+    margin-top: 0px;
+  }
+}
+.form * {
+  margin: 10px;
+}
+
+// ----------------------backdrop-----------------------------
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.75);
+}
+// ----------------------backdrop-----------------------------

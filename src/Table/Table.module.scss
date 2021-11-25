@@ -1,0 +1,23 @@
+.section {
+  width: 90%;
+  margin: auto;
+}
+.table_main {
+  background-color: rgb(255, 255, 255);
+  width: 100%;
+  margin: 2.5rem 0;
+  border: 1px solid black;
+  border-collapse: collapse;
+  tfoot td {
+    text-align: center;
+  }
+}
+
+.table_main * {
+  border: 1px solid black;
+}
+
+.table_main thead tr:nth-of-type(1) th,
+.table_main tfoot tr th {
+  padding: 1rem;
+}

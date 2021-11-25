@@ -1,0 +1,22 @@
+.main td {
+  width: 3rem;
+  height: 2rem;
+}
+.main th {
+  width: 10rem;
+  text-align: left;
+  padding: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.main input {
+  border: none;
+  width: 100%;
+  line-height: 30px;
+  height: 100%;
+  text-align: center;
+}
+.main td {
+  text-align: center;
+}
