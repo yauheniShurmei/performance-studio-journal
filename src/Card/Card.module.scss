@@ -1,17 +1,26 @@
-.main {
-  top: 30vh;
-  left: 30%;
-  width: 80%;
-  z-index: 100;
-  overflow: hidden;
-
+.fullScreen {
   position: absolute;
-  width: 40%;
+  height: 100vh;
+  width: 100%;
+  top: 0;
+  left: 0;
+
   display: flex;
   justify-content: center;
-  text-align: center;
+  align-items: center;
+}
+
+.main {
+  z-index: 100;
   background-color: white;
-  border: 1px solid black;
+  border: 10px solid rgb(212, 73, 73);
+
+  // display: flex;
+  // width: 40%;
+  // justify-content: center;
+  // text-align: center;
+  // overflow: hidden;
+  // border: 1px solid black;
   box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   button {
     width: 30%;
@@ -20,27 +29,28 @@
     margin: 10px;
   }
 }
-.open {
-  display: block;
-}
-.close {
-  display: none;
-}
 
-.form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  p {
-    color: red;
-    margin-top: 0px;
-  }
-}
-.form * {
-  margin: 10px;
-}
+// .open {
+//   display: block;
+// }
+// .close {
+//   display: none;
+// }
 
-// ----------------------backdrop-----------------------------
+// .form {
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   p {
+//     color: red;
+//     margin-top: 0px;
+//   }
+// }
+// .form * {
+//   margin: 10px;
+// }
+
+// // ----------------------backdrop-----------------------------
 .backdrop {
   position: fixed;
   top: 0;
@@ -50,4 +60,4 @@
   z-index: 10;
   background: rgba(0, 0, 0, 0.75);
 }
-// ----------------------backdrop-----------------------------
+// // ----------------------backdrop-----------------------------

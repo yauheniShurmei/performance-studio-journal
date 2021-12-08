@@ -1,6 +1,5 @@
 import { useState } from "react";
 import classes from "./AddStudent.module.scss";
-import { Link } from "react-router-dom";
 import AddExistingStudent from "./AddExistingStudent/AddExistingStudent";
 
 const AddStudent = (props) => {
@@ -52,34 +51,20 @@ const AddStudent = (props) => {
 
   const openCloseInfoPageHandler = () => {
     setIsOpenExistStList(!isOpenExistStList);
+    console.log("!!!!!!!!!!");
   };
 
   return (
     <div className={classes.main}>
-      {/* <button onClick={openStudentsListHandler}>DODAĆ UCZNIÓW Z LISTY</button> */}
-      <Link to="/new-student">DODAĆ NOWEGO UCZNIA</Link>
       <button onClick={openCloseInfoPageHandler}>DODAĆ UCZNIÓW Z LISTY</button>
-      <AddExistingStudent
-        isOpen={isOpenExistStList}
-        openCloseHandler={openCloseInfoPageHandler}
-        students={students}
-        date={props.date}
-      />
-
-      <ul style={isOpenList ? { display: "block" } : { display: "none" }}>
-        {students.length !== 0
-          ? students.map((student) => {
-              return (
-                <li
-                  key={student.name}
-                  onClick={() => addStudentHandler(student)}
-                >
-                  {student.name}
-                </li>
-              );
-            })
-          : null}
-      </ul>
+      {isOpenExistStList && (
+        <AddExistingStudent
+          openCloseHandler={openCloseInfoPageHandler}
+          students={students}
+          date={props.date}
+          onStudentAdd={props.onStudentAdd}
+        />
+      )}
     </div>
   );
 };

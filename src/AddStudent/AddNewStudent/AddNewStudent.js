@@ -1,12 +1,10 @@
-import classes from "./NewStudent.module.scss";
-import { MONTHS, YEARS } from "../Table/DATE";
+import classes from "./AddNewStudent.module.scss";
+import { MONTHS, YEARS } from "../../Table/DATE";
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useContext } from "react/cjs/react.development";
-import AuthContext from "../store/auth-context";
-import { createNewStudent } from "../firebase/initFireBase";
+import AuthContext from "../../store/auth-context";
 
-const NewStudent = () => {
+const NewStudent = (props) => {
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(
     new Date().getMonth() > 8
@@ -14,7 +12,6 @@ const NewStudent = () => {
       : `0${new Date().getMonth() + 1}`
   );
   const authCtx = useContext(AuthContext);
-  const navigate = useNavigate();
   const lessonDuration = useRef();
 
   const [enteredName, setEnteredName] = useState("");
@@ -82,7 +79,7 @@ const NewStudent = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        navigate("/table");
+        props.onStudentAdd();
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -158,7 +155,7 @@ const NewStudent = () => {
           <button
             onClick={(e) => {
               e.preventDefault();
-              navigate(-1);
+              props.openCloseHandler();
             }}
           >
             COFNIJ

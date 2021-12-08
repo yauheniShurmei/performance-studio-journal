@@ -75,17 +75,15 @@ const Student = (props) => {
   return (
     <tr className={classes.main}>
       <th onClick={() => props.openAndChangeStudentInfoHandler(props.student)}>
-        {props.student.name}
+        {props.student.name + " " + props.student.familyName}
       </th>
       {lessons.map((lesson, index) => {
         return (
           <td key={index}>
             <input
               value={lesson === 0 ? "" : lesson}
-              onChange={
-                (event) =>
-                  changeDateHandler(event, index, props.student.key, props.date)
-                // changeLessonData(event, index, props.student.key, props.date)
+              onChange={(event) =>
+                changeDateHandler(event, index, props.student.key, props.date)
               }
             />
           </td>
