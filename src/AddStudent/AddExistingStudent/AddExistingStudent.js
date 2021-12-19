@@ -24,7 +24,7 @@ const AddExistingStudent = (props) => {
     )
       .then((res) => res.json())
       .then((data) => {
-        setYears([...Object.keys(data), "all"]);
+        data && setYears([...Object.keys(data), "all"]);
       });
     // --------------------------- Get All Years For Options---------------------------
     getStudents(selectedYear);
@@ -35,7 +35,7 @@ const AddExistingStudent = (props) => {
     console.log("[addStudentHandler FUNCTION]");
 
     const student = {
-      lessons: {},
+      lessons: event.lessons,
       student_profile: event.student_profile,
     };
     student.lessons[props.date[0]] = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -61,6 +61,7 @@ const AddExistingStudent = (props) => {
   };
 
   const changeHandler = (e) => {
+    setStudents([]);
     setSelectedYear(e.target.value);
     getStudents(e.target.value);
     sortHandler(sortBy);
@@ -81,6 +82,13 @@ const AddExistingStudent = (props) => {
         .then((data) => {
           // ----------------  get the object. data = {2020: {students}, 2021: {students}} ----------------
           const arrayOfYears = Object.keys(data); // arrayOfYears = ["2020", "2021"]
+          const keysOfAllStudentsArray = [];
+
+          for (let year of arrayOfYears) {
+            Object.keys(data[year]).map((key) => {
+              keysOfAllStudentsArray.push(key);
+            });
+          }
 
           for (let year of arrayOfYears) {
             // year = "2020"
@@ -92,10 +100,11 @@ const AddExistingStudent = (props) => {
                 authCtx.studentsFromCurrentYear[key]?.lessons[props.date[0]]
               ) {
                 return null;
+              } else {
+                data[year][key].student_profile.key = key;
+                searchStudents.push(data[year][key]);
+                return null;
               }
-              data[year][key].student_profile.key = key;
-              searchStudents.push(data[year][key]);
-              return null;
             });
             // ----------------  get the one year and push every student in list ----------------
           }
@@ -107,15 +116,18 @@ const AddExistingStudent = (props) => {
       )
         .then((res) => res.json())
         .then((data) => {
-          Object.keys(data).map((key) => {
-            if (authCtx.studentsFromCurrentYear[key]?.lessons[props.date[0]]) {
-              return null;
-            } else {
-              data[key].student_profile.key = key;
-              searchStudents.push(data[key]);
-              return null;
-            }
-          });
+          data &&
+            Object.keys(data).map((key) => {
+              if (
+                authCtx.studentsFromCurrentYear[key]?.lessons[props.date[0]]
+              ) {
+                return null;
+              } else {
+                data[key].student_profile.key = key;
+                searchStudents.push(data[key]);
+                return null;
+              }
+            });
           setStudents([...searchStudents]);
         });
     }

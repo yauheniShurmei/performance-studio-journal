@@ -1,14 +1,29 @@
 .main td {
-  width: 3rem;
+  min-width: 3rem;
   height: 2rem;
 }
 .main th {
-  width: 10rem;
   text-align: left;
-  padding: 10px;
+  margin: 10px;
   white-space: nowrap;
-  cursor: pointer;
   user-select: none;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  div {
+    border: none;
+    cursor: pointer;
+  }
+
+  span {
+    margin-left: 10px;
+    border: none;
+    img {
+      border: none;
+      cursor: pointer;
+      width: 1rem;
+    }
+  }
 }
 .main input {
   border: none;

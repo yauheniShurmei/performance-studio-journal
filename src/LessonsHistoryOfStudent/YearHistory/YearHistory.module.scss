@@ -1,0 +1,17 @@
+.main {
+  div {
+    text-align: start;
+    margin: 0 10px;
+  }
+  ul {
+    display: flex;
+    margin-top: 0;
+    li {
+      width: 1rem;
+      height: 1rem;
+      border: 1px solid black;
+      border-radius: 10%;
+      margin: 2px;
+    }
+  }
+}

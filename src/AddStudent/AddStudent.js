@@ -51,12 +51,11 @@ const AddStudent = (props) => {
 
   const openCloseInfoPageHandler = () => {
     setIsOpenExistStList(!isOpenExistStList);
-    console.log("!!!!!!!!!!");
   };
 
   return (
     <div className={classes.main}>
-      <button onClick={openCloseInfoPageHandler}>DODAĆ UCZNIÓW Z LISTY</button>
+      <button onClick={openCloseInfoPageHandler}>DODAĆ UCZNIÓW</button>
       {isOpenExistStList && (
         <AddExistingStudent
           openCloseHandler={openCloseInfoPageHandler}

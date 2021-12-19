@@ -6,7 +6,7 @@ import Students from "../Students/Students";
 import StudentInfoPage from "../StudentInfoPage/StudentInfoPage";
 import { useContext } from "react/cjs/react.development";
 import AuthContext from "../store/auth-context";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Table = (props) => {
   console.log("[TABLE_COPY.JS]");
@@ -21,6 +21,7 @@ const Table = (props) => {
   const [isOpenStudentInfo, setIsOpenStudentInfo] = useState(false);
   const [selectedStudentForChange, setSelectedStudentForChange] = useState();
   const [sumaLekcji, setSumaLekcji] = useState([0, 0]);
+  const [isAddFromLastMonth, setIsAddFromLastMonth] = useState(false);
   const authCtx = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -31,7 +32,53 @@ const Table = (props) => {
     setYear(event.target.value);
   };
 
-  function getDataFromServer() {
+  async function findStudentFromSelectedMonth(month, year) {
+    const returnData = {};
+    await fetch(
+      `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${year}.json`
+    )
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          return res.json().then((data) => {
+            let error = "Something is wrong!";
+            throw new Error(error);
+          });
+        }
+      })
+      // ------------------------- DO IF DATA IS -------------------------
+      .then((data) => {
+        if (data) {
+          const dataArray = Object.keys(data).map((key) => {
+            data[key].student_profile.key = key;
+            data[key].year = String(year);
+            return data[key];
+          });
+          //--------------szukamy studentów z wybranogo miesiąca-------------------
+          const filteredStudents = [];
+          dataArray.map((student) => {
+            if (typeof student.lessons[month] != "undefined") {
+              filteredStudents.push(student);
+            }
+          });
+          returnData.students = filteredStudents;
+        } else {
+          return null;
+        }
+      })
+      // ------------------------- DO IF DATA IS -------------------------END
+      // -------------------------Catch the Err if NO DATA -------------------------
+      .catch((err) => {
+        console.log("[IS NO DATA]");
+        alert(err.message);
+      });
+    // -------------------------Catch the Err if NO DATA -------------------------END
+    return returnData;
+  }
+
+  // ----------------------- MAIN FUNCTION GET STUDENTS -----------------------
+  const getDataFromServer = () => {
     console.log("[TABLE][FUNC] GET_DATA_FROM_SERVER");
     fetch(
       `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${year}.json`
@@ -53,6 +100,7 @@ const Table = (props) => {
         if (data) {
           const dataArray = Object.keys(data).map((key) => {
             data[key].student_profile.key = key;
+            data[key].year = String(year);
             return data[key];
           });
           authCtx.getStudents(data);
@@ -127,11 +175,12 @@ const Table = (props) => {
         alert(err.message);
       });
     // -------------------------Catch the Err if NO DATA -------------------------
-  }
+  };
+  // ----------------------- MAIN FUNCTION GET STUDENTS -----------------------
   useEffect(() => {
     console.log("[USE EFFECT IN TABLE] [GET DATA FROM SERVER FUNC]");
     getDataFromServer();
-  }, [month, year]);
+  }, [month, year, isAddFromLastMonth]);
 
   const openAndChangeStudentInfoHandler = (student) => {
     setIsOpenStudentInfo(!isOpenStudentInfo);
@@ -145,19 +194,109 @@ const Table = (props) => {
   const salaryCounter = () => {
     return sumaLekcji[0] * 20 + sumaLekcji[1] * 35;
   };
+  // -----------------addStudent----------------- //
+  async function addStudentHandler(students, month, year) {
+    console.log("[addStudentHandler FUNCTION]");
+
+    for (let student of students) {
+      const newStudent = {
+        lessons: student.lessons,
+        student_profile: student.student_profile,
+      };
+      student.lessons[month] = [0, 0, 0, 0, 0, 0, 0, 0];
+
+      await fetch(
+        `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${year}/${student.student_profile.key}.json`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newStudent),
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {})
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    }
+  }
+  // -----------------addStudent-----------------
+
+  // --------------------------- FINDING PREVIEW MONTH ---------------------------
+  const addStudentsFromPreviewMonth = () => {
+    let searchingMonth;
+    let searchingYear;
+    if (Number(month) === 1) {
+      searchingMonth = 12;
+      searchingYear = Number(year) - 1;
+    } else {
+      searchingMonth = Number(month) - 1;
+      searchingYear = year;
+    }
+
+    if (searchingMonth < 10) {
+      searchingMonth = `0${searchingMonth}`;
+    }
+
+    let students = [];
+    findStudentFromSelectedMonth(searchingMonth, searchingYear).then((res) => {
+      students = [...res.students];
+      console.log(students);
+      addStudentHandler(students, month, year).then((res) =>
+        setIsAddFromLastMonth(!isAddFromLastMonth)
+      );
+    });
+  };
+  // --------------------------- FINDING PREVIEW MONTH ---------------------------
+
+  const selectElements = (
+    <>
+      <select value={year} id="year-select" onChange={changeYearHandler}>
+        {YEARS.map((year) => {
+          return (
+            <option key={year.value} value={year.value}>
+              {year.year}
+            </option>
+          );
+        })}
+      </select>
+      <select value={month} id="month-select" onChange={changeMonthHandler}>
+        {MONTHS.map((month) => {
+          return (
+            <option key={month.value} value={month.value}>
+              {month.month}
+            </option>
+          );
+        })}
+      </select>
+    </>
+  );
 
   if (data === 0) {
     return (
       <div>
         <h1>Nie ma Danych</h1>
-        <button onClick={() => navigate(0)}>Cofnij</button>
-        <Link to="/new-student">Dodaj Nowego Ucznia</Link>
+        {selectElements}
+        <AddStudent
+          date={[month, year]}
+          onStudentAdd={() => getDataFromServer()}
+        />
+        <div>
+          <button onClick={() => navigate(0)}>Cofnij</button>
+          <button onClick={addStudentsFromPreviewMonth}>
+            Dodaj uczniów z zeszłego miesiąca
+          </button>
+        </div>
       </div>
     );
   }
+  // SPINER
   if (!data || typeof data == "undefined" || data.length === 0) {
     return <h1>LOADING...</h1>;
   }
+  // SPINER
 
   return (
     <section className={classes.section}>
@@ -167,35 +306,7 @@ const Table = (props) => {
             <th colSpan={11}>PERFORMANCE STUDIO</th>
           </tr>
           <tr>
-            <th>
-              <select
-                value={year}
-                id="year-select"
-                onChange={changeYearHandler}
-              >
-                {YEARS.map((year) => {
-                  return (
-                    <option key={year.value} value={year.value}>
-                      {year.year}
-                    </option>
-                  );
-                })}
-              </select>
-              <select
-                value={month}
-                id="month-select"
-                onChange={changeMonthHandler}
-              >
-                {MONTHS.map((month) => {
-                  return (
-                    <option key={month.value} value={month.value}>
-                      {month.month}
-                    </option>
-                  );
-                })}
-              </select>
-            </th>
-
+            <th>{selectElements}</th>
             <th colSpan={8}>LEKCJE</th>
             <th>DO NADRABIANIA Z ZESZŁYCH MIESĘCY</th>
             <th>LEKCJI ZOSTAŁO</th>
@@ -218,13 +329,15 @@ const Table = (props) => {
           </tr>
         </tfoot>
       </table>
-      <StudentInfoPage
-        openCloseHandler={openCloseInfoPageHandler}
-        isOpen={isOpenStudentInfo}
-        selectedStudentForChange={selectedStudentForChange}
-        openAndChangeStudentInfoHandler={openAndChangeStudentInfoHandler}
-        dataIsChange={() => getDataFromServer()}
-      />
+      {isOpenStudentInfo && (
+        <StudentInfoPage
+          openCloseHandler={openCloseInfoPageHandler}
+          isOpen={isOpenStudentInfo}
+          selectedStudentForChange={selectedStudentForChange}
+          openAndChangeStudentInfoHandler={openAndChangeStudentInfoHandler}
+          dataIsChange={() => getDataFromServer()}
+        />
+      )}
       <AddStudent
         date={[month, year]}
         onStudentAdd={() => getDataFromServer()}

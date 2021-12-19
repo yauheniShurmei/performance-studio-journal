@@ -1,12 +1,15 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
+import Card from "../Card/Card";
 import useInput from "../hooks/use-input";
+import AuthContext from "../store/auth-context";
 import classes from "./StudentInfoPage.module.scss";
+import LessonsHistoryOfStudent from "../LessonsHistoryOfStudent/LessonsHistoryOfStudent";
 
 const StudentInfoPage = (props) => {
-  const [classesDynamic, setClassesDynamic] = useState(classes.main);
-  const changedName = useRef();
+  const authCtx = useContext(AuthContext);
   const lessonDuration = useRef();
-  const [lessonsHistory, setLessonsHistory] = useState(null);
+  const [lessonsHistory, setLessonsHistory] = useState([]);
+  const [lessonHistoryToSend, setLessonHistoryToSend] = useState([]);
 
   // ------------------- CHECK AND GET STUDENT -------------------
   const student =
@@ -29,68 +32,85 @@ const StudentInfoPage = (props) => {
     inputBlurHandler: nameBlurHandler,
     resetTouch: resetNameInput,
   } = useInput((value) => value.trim() !== "");
+  const {
+    value: enteredFamilyName,
+    isValid: enteredFamilyNameIsValid,
+    hasError: familyNameInputHasError,
+    loadedNameHandler: loadedFamilyNameHandler,
+    valueChangeHandler: familyNameChangeHandler,
+    inputBlurHandler: familyNameBlurHandler,
+    resetTouch: resetFamilyNameInput,
+  } = useInput((value) => value.trim() !== "");
   // ------------------- CUSTOM HOOK USE INPUT -------------------
+
+  useEffect(() => {
+    console.log("[USE EFFECT STUDENT INFO PAGE]");
+    getStudentLessons();
+    lessonDuration.current.value = student.lessonDuration;
+    student.name && loadedNameHandler(student.name);
+    student.familyName && loadedFamilyNameHandler(student.familyName);
+    resetNameInput();
+  }, [props.isOpen]);
 
   const getStudentLessons = () => {
     fetch(
-      `https://performance-lessons-default-rtdb.firebaseio.com/students/${student.key}/lessons.json`
+      `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years.json`
     )
       .then((res) => res.json())
       .then((data) => {
-        setLessonsHistory(data);
+        const years = [];
+        const month = {};
+        Object.keys(data).map((year) => {
+          if (data[year][props.selectedStudentForChange.key]) {
+            years.push(year);
+            month[year] = Object.keys(
+              data[year][props.selectedStudentForChange.key].lessons
+            );
+          }
+        });
+        setLessonHistoryToSend(month);
+        setLessonsHistory(years);
       });
   };
 
   const submitHandler = (event) => {
     event.preventDefault();
-    console.log("[SUBMIT HANDLER]");
     const newName = enteredName;
+    const newFamilyName = enteredFamilyName;
     const newLessonDuration = lessonDuration.current.value;
-    fetch(
-      `https://performance-lessons-default-rtdb.firebaseio.com/students/${student.key}/lessonDuration.json`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: newLessonDuration,
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        props.dataIsChange();
-      });
-    console.log(newName);
+
+    const student_profile = {
+      key: props.selectedStudentForChange.key,
+      familyName: newFamilyName,
+      lessonDuration: newLessonDuration,
+      name: newName,
+    };
+
+    for (let year of lessonsHistory) {
+      console.log(year);
+      fetch(
+        `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${year}/${props.selectedStudentForChange.key}/student_profile.json`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(student_profile),
+        }
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          props.dataIsChange();
+        });
+    }
   };
 
-  useEffect(() => {
-    props.isOpen
-      ? setClassesDynamic([classes.main, classes.open].join(" "))
-      : setClassesDynamic([classes.main, classes.close].join(" "));
-    lessonDuration.current.value = student.lessonDuration;
-    getStudentLessons();
-    student.name && loadedNameHandler(student.name);
-    resetNameInput();
-  }, [props.isOpen]);
-
-  let lessonsHistoryRender =
-    lessonsHistory !== null ? (
-      Object.keys(lessonsHistory).map((key) => {
-        return <li key={key}>{key}</li>;
-      })
-    ) : (
-      <li>Nie ma danych</li>
-    );
-
   return (
-    <div>
-      {props.isOpen && (
-        <div className={classes.backdrop} onClick={props.openCloseHandler} />
-      )}
-      <section className={classesDynamic}>
-        <h1>{student.name}</h1>
+    <Card openCloseHandler={props.openCloseHandler}>
+      <section className={classes.main}>
         <form id="form" className={classes.form} onSubmit={submitHandler}>
+          <h1>{`${student.name} ${student.familyName}`}</h1>
+
           <label>zmienić imie</label>
           <input
             value={enteredName}
@@ -98,19 +118,28 @@ const StudentInfoPage = (props) => {
             onBlur={nameBlurHandler}
           />
           {nameInputHasError && <p>pole nie może być pustym</p>}
+          <label>nazwisko</label>
+          <input
+            value={enteredFamilyName}
+            onChange={familyNameChangeHandler}
+            onBlur={familyNameBlurHandler}
+          />
+          {familyNameInputHasError && <p>pole nie może być pustym</p>}
           <label>długość lekcji</label>
           <select id="lessonDuration" ref={lessonDuration}>
             <option value={45}>45 minut</option>
             <option value={30}>30 minut</option>
           </select>
-          <ul>{lessonsHistoryRender}</ul>
+          <LessonsHistoryOfStudent lessonsHistory={lessonHistoryToSend} />
           <button form="form" type="submit" disabled={nameInputHasError}>
             AKTUALIZACJA DANYCH
           </button>
+          <button onClick={props.openAndChangeStudentInfoHandler}>
+            ZAMKNIJ
+          </button>
         </form>
-        <button onClick={props.openAndChangeStudentInfoHandler}>ZAMKNIJ</button>
       </section>
-    </div>
+    </Card>
   );
 };
 
