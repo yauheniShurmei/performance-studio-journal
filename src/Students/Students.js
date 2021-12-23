@@ -2,7 +2,7 @@ import Student from "./Student/Student";
 import classes from "./Students.module.scss";
 
 const Students = (props) => {
-  console.log("[STUDENTS.JS]");
+  // console.log("[STUDENTS.JS]");
 
   if (
     !props.students ||
@@ -16,14 +16,16 @@ const Students = (props) => {
     );
   }
 
-  return props.students.map((student) => {
+  return props.students.map((student, index) => {
     return (
       <Student
+        index={index}
         key={student.key}
         student={student}
         date={props.date}
         dataIsChange={props.dataIsChange}
         openAndChangeStudentInfoHandler={props.openAndChangeStudentInfoHandler}
+        openCloseHandler={props.openCloseHandler}
       />
     );
   });

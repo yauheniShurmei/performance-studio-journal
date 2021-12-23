@@ -7,7 +7,7 @@ const Student = (props) => {
   const [newDate, setNewDate] = useState();
   const authCtx = useContext(AuthContext);
 
-  console.log("[STUDENT.JS]");
+  // console.log("[STUDENT.JS]");
 
   const sendDataHandler = (newDate) => {
     fetch(
@@ -25,7 +25,7 @@ const Student = (props) => {
         props.dataIsChange();
       })
       .catch((err) => {
-        console.log(err);
+        // console.log(err);
       });
   };
 
@@ -45,13 +45,13 @@ const Student = (props) => {
   };
 
   useEffect(() => {
-    console.log("[STUDENT USE EFFECT]");
+    // console.log("[STUDENT USE EFFECT]");
     setLessons(props.student.lessons);
   }, [props.student.lessons]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      console.log("[STUDENT] [USE EFEECT] [SEND DATA HANDLER]");
+      // console.log("[STUDENT] [USE EFEECT] [SEND DATA HANDLER]");
       newDate && sendDataHandler(newDate);
     }, 500);
 
@@ -72,45 +72,30 @@ const Student = (props) => {
     return leftLessons === 0 ? "" : leftLessons;
   };
 
-  // -------------DELETE HANDLER --------------------------------
-  const deleteStudentHandler = (e) => {
-    // console.log(e, authCtx.studentsFromCurrentYear[props.student.key].lessons);
-    let isDeleteEntireStudentOrOneMonthData;
-    if (
-      Object.entries(authCtx.studentsFromCurrentYear[props.student.key].lessons)
-        .length < 2
-    ) {
-      isDeleteEntireStudentOrOneMonthData = `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${props.date[1]}/${props.student.key}.json`;
-    } else {
-      isDeleteEntireStudentOrOneMonthData = `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${props.date[1]}/${props.student.key}/lessons/${props.date[0]}.json`;
-    }
-    fetch(isDeleteEntireStudentOrOneMonthData, {
-      method: "DELETE",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        props.dataIsChange();
-        console.log(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-  // -------------DELETE HANDLER --------------------------------
-
   return (
     <tr className={classes.main}>
       <th>
         <div
           onClick={() => props.openAndChangeStudentInfoHandler(props.student)}
         >
-          {props.student.name + " " + props.student.familyName}
+          {props.index +
+            1 +
+            ". " +
+            props.student.name +
+            " " +
+            props.student.familyName}
         </div>
         <span>
           <img
             src="bin.png"
             alt="bin"
-            onClick={() => deleteStudentHandler(props.student.key)}
+            onClick={() =>
+              props.openCloseHandler({
+                key: props.student.key,
+                name: props.student.name,
+                familyName: props.student.familyName,
+              })
+            }
           />
         </span>
       </th>

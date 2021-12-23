@@ -7,29 +7,27 @@ import StudentInfoPage from "../StudentInfoPage/StudentInfoPage";
 import { useContext } from "react/cjs/react.development";
 import AuthContext from "../store/auth-context";
 import { useNavigate } from "react-router-dom";
+import ConfirmWindow from "../ConfirmWindow/ConfirmWindow";
 
 const Table = (props) => {
-  console.log("[TABLE_COPY.JS]");
+  // console.log("[TABLE_COPY.JS]");
 
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(
-    new Date().getMonth() > 8
-      ? new Date().getMonth() + 1
-      : `0${new Date().getMonth() + 1}`
-  );
   const [data, setData] = useState();
   const [isOpenStudentInfo, setIsOpenStudentInfo] = useState(false);
+  const [isOpenConfirmedWindow, setIsOpenConfirmedWindow] = useState(false);
   const [selectedStudentForChange, setSelectedStudentForChange] = useState();
   const [sumaLekcji, setSumaLekcji] = useState([0, 0]);
   const [isAddFromLastMonth, setIsAddFromLastMonth] = useState(false);
+  const [studentToDeleteInformation, setStudentToDeleteInformation] =
+    useState();
   const authCtx = useContext(AuthContext);
   const navigate = useNavigate();
 
   const changeMonthHandler = (event) => {
-    setMonth(event.target.value);
+    authCtx.setMonthFunction(event.target.value);
   };
   const changeYearHandler = (event) => {
-    setYear(event.target.value);
+    authCtx.setYearFunction(event.target.value);
   };
 
   async function findStudentFromSelectedMonth(month, year) {
@@ -61,6 +59,7 @@ const Table = (props) => {
             if (typeof student.lessons[month] != "undefined") {
               filteredStudents.push(student);
             }
+            return null;
           });
           returnData.students = filteredStudents;
         } else {
@@ -70,7 +69,7 @@ const Table = (props) => {
       // ------------------------- DO IF DATA IS -------------------------END
       // -------------------------Catch the Err if NO DATA -------------------------
       .catch((err) => {
-        console.log("[IS NO DATA]");
+        // console.log("[IS NO DATA]");
         alert(err.message);
       });
     // -------------------------Catch the Err if NO DATA -------------------------END
@@ -79,9 +78,9 @@ const Table = (props) => {
 
   // ----------------------- MAIN FUNCTION GET STUDENTS -----------------------
   const getDataFromServer = () => {
-    console.log("[TABLE][FUNC] GET_DATA_FROM_SERVER");
+    // console.log("[TABLE][FUNC] GET_DATA_FROM_SERVER");
     fetch(
-      `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${year}.json`
+      `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${authCtx.currentYear}.json`
     )
       .then((res) => {
         if (res.ok) {
@@ -95,12 +94,12 @@ const Table = (props) => {
       })
       // ------------------------- DO IF DATA IS -------------------------
       .then((data) => {
-        console.log("[DATA IS]");
+        // console.log("[DATA IS]");
 
         if (data) {
           const dataArray = Object.keys(data).map((key) => {
             data[key].student_profile.key = key;
-            data[key].year = String(year);
+            data[key].year = String(authCtx.currentYear);
             return data[key];
           });
           authCtx.getStudents(data);
@@ -108,55 +107,54 @@ const Table = (props) => {
           const filteredStudents = [];
           let sumaLekcji = [0, 0];
           dataArray.map((student) => {
-            if (typeof student.lessons[month] != "undefined") {
+            if (typeof student.lessons[authCtx.currentMonth] != "undefined") {
               let filteredStudent = {};
               filteredStudent.key = student.student_profile.key;
               filteredStudent.name = student.student_profile.name;
               filteredStudent.familyName = student.student_profile.familyName;
               filteredStudent.lessonDuration =
                 student.student_profile.lessonDuration;
-              filteredStudent.lessons = student.lessons[month];
+              filteredStudent.lessons = student.lessons[authCtx.currentMonth];
               // -------liczymy sume lekcji--------------------------------
-              const sumOf35MinutLesson = student.lessons[month].reduce(
-                (prev, curr) => {
-                  return curr !== 0 &&
-                    curr !== "-" &&
-                    student.student_profile.lessonDuration === 30
-                    ? prev + 1
-                    : prev + 0;
-                },
-                0
-              );
-              const sumOf45MinutLesson = student.lessons[month].reduce(
-                (prev, curr) => {
-                  return curr !== 0 &&
-                    curr !== "-" &&
-                    student.student_profile.lessonDuration === 45
-                    ? prev + 1
-                    : prev + 0;
-                },
-                0
-              );
+              const sumOf35MinutLesson = student.lessons[
+                authCtx.currentMonth
+              ].reduce((prev, curr) => {
+                return curr !== 0 &&
+                  curr !== "-" &&
+                  Number(student.student_profile.lessonDuration) === 30
+                  ? prev + 1
+                  : prev + 0;
+              }, 0);
+              const sumOf45MinutLesson = student.lessons[
+                authCtx.currentMonth
+              ].reduce((prev, curr) => {
+                return curr !== 0 &&
+                  curr !== "-" &&
+                  Number(student.student_profile.lessonDuration) === 45
+                  ? prev + 1
+                  : prev + 0;
+              }, 0);
               sumaLekcji[0] += sumOf35MinutLesson;
               sumaLekcji[1] += sumOf45MinutLesson;
               // ------------------liczymy sume lekcji-------------------
               if (
                 typeof student.lessons[
-                  Number(month) < 11
-                    ? `0${Number(month) - 1}`
-                    : Number(month) - 1
+                  Number(authCtx.currentMonth) < 11
+                    ? `0${Number(authCtx.currentMonth) - 1}`
+                    : Number(authCtx.currentMonth) - 1
                 ] != "undefined"
               ) {
                 filteredStudent.leftFromLastMonth = student.lessons[
-                  Number(month) < 11
-                    ? `0${Number(month) - 1}`
-                    : Number(month) - 1
+                  Number(authCtx.currentMonth) < 11
+                    ? `0${Number(authCtx.currentMonth) - 1}`
+                    : Number(authCtx.currentMonth) - 1
                 ].reduce((prev, curr) => {
                   return curr !== 0 && prev - 1 >= 0 ? prev - 1 : prev - 0;
                 }, 4);
               }
               filteredStudents.push(filteredStudent);
             }
+            return null;
           });
           if (filteredStudents.length !== 0) {
             setData(filteredStudents);
@@ -165,22 +163,23 @@ const Table = (props) => {
           }
           setSumaLekcji(sumaLekcji);
         } else {
+          authCtx.getStudents({});
           setData(0);
         }
       })
       // -------------------------DO IF DATA IS -------------------------
       // -------------------------Catch the Err if NO DATA -------------------------
       .catch((err) => {
-        console.log("[IS NO DATA]");
+        // console.log("[IS NO DATA]");
         alert(err.message);
       });
     // -------------------------Catch the Err if NO DATA -------------------------
   };
   // ----------------------- MAIN FUNCTION GET STUDENTS -----------------------
   useEffect(() => {
-    console.log("[USE EFFECT IN TABLE] [GET DATA FROM SERVER FUNC]");
+    // console.log("[USE EFFECT IN TABLE] [GET DATA FROM SERVER FUNC]");
     getDataFromServer();
-  }, [month, year, isAddFromLastMonth]);
+  }, [authCtx.currentMonth, authCtx.currentYear, isAddFromLastMonth]);
 
   const openAndChangeStudentInfoHandler = (student) => {
     setIsOpenStudentInfo(!isOpenStudentInfo);
@@ -190,13 +189,17 @@ const Table = (props) => {
   const openCloseInfoPageHandler = () => {
     setIsOpenStudentInfo(!isOpenStudentInfo);
   };
+  const openCloseConfirmedWindow = (studentInfoObj) => {
+    setIsOpenConfirmedWindow(!isOpenConfirmedWindow);
+    setStudentToDeleteInformation(studentInfoObj);
+  };
 
   const salaryCounter = () => {
-    return sumaLekcji[0] * 20 + sumaLekcji[1] * 35;
+    return sumaLekcji[0] * 20 + sumaLekcji[1] * 40;
   };
   // -----------------addStudent----------------- //
   async function addStudentHandler(students, month, year) {
-    console.log("[addStudentHandler FUNCTION]");
+    // console.log("[addStudentHandler FUNCTION]");
 
     for (let student of students) {
       const newStudent = {
@@ -218,7 +221,7 @@ const Table = (props) => {
         .then((response) => response.json())
         .then((data) => {})
         .catch((error) => {
-          console.error("Error:", error);
+          // console.error("Error:", error);
         });
     }
   }
@@ -228,12 +231,12 @@ const Table = (props) => {
   const addStudentsFromPreviewMonth = () => {
     let searchingMonth;
     let searchingYear;
-    if (Number(month) === 1) {
+    if (Number(authCtx.currentMonth) === 1) {
       searchingMonth = 12;
-      searchingYear = Number(year) - 1;
+      searchingYear = Number(authCtx.currentYear) - 1;
     } else {
-      searchingMonth = Number(month) - 1;
-      searchingYear = year;
+      searchingMonth = Number(authCtx.currentMonth) - 1;
+      searchingYear = authCtx.currentYear;
     }
 
     if (searchingMonth < 10) {
@@ -243,17 +246,23 @@ const Table = (props) => {
     let students = [];
     findStudentFromSelectedMonth(searchingMonth, searchingYear).then((res) => {
       students = [...res.students];
-      console.log(students);
-      addStudentHandler(students, month, year).then((res) =>
-        setIsAddFromLastMonth(!isAddFromLastMonth)
-      );
+      // console.log(students);
+      addStudentHandler(
+        students,
+        authCtx.currentMonth,
+        authCtx.currentYear
+      ).then((res) => setIsAddFromLastMonth(!isAddFromLastMonth));
     });
   };
   // --------------------------- FINDING PREVIEW MONTH ---------------------------
 
   const selectElements = (
     <>
-      <select value={year} id="year-select" onChange={changeYearHandler}>
+      <select
+        value={authCtx.currentYear}
+        id="year-select"
+        onChange={changeYearHandler}
+      >
         {YEARS.map((year) => {
           return (
             <option key={year.value} value={year.value}>
@@ -262,7 +271,11 @@ const Table = (props) => {
           );
         })}
       </select>
-      <select value={month} id="month-select" onChange={changeMonthHandler}>
+      <select
+        value={authCtx.currentMonth}
+        id="month-select"
+        onChange={changeMonthHandler}
+      >
         {MONTHS.map((month) => {
           return (
             <option key={month.value} value={month.value}>
@@ -280,7 +293,7 @@ const Table = (props) => {
         <h1>Nie ma Danych</h1>
         {selectElements}
         <AddStudent
-          date={[month, year]}
+          date={[authCtx.currentMonth, authCtx.currentYear]}
           onStudentAdd={() => getDataFromServer()}
         />
         <div>
@@ -315,8 +328,9 @@ const Table = (props) => {
         <tbody>
           <Students
             students={data}
-            date={[month, year]}
+            date={[authCtx.currentMonth, authCtx.currentYear]}
             openAndChangeStudentInfoHandler={openAndChangeStudentInfoHandler}
+            openCloseHandler={openCloseConfirmedWindow}
             dataIsChange={() => getDataFromServer()}
           />
         </tbody>
@@ -339,9 +353,17 @@ const Table = (props) => {
         />
       )}
       <AddStudent
-        date={[month, year]}
+        date={[authCtx.currentMonth, authCtx.currentYear]}
         onStudentAdd={() => getDataFromServer()}
       />
+      {isOpenConfirmedWindow && (
+        <ConfirmWindow
+          openCloseHandler={openCloseConfirmedWindow}
+          isOpen={isOpenConfirmedWindow}
+          dataIsChange={() => getDataFromServer()}
+          studentToDeleteInformation={studentToDeleteInformation}
+        />
+      )}
     </section>
   );
 };

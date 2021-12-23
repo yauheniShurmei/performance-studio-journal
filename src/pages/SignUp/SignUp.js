@@ -12,24 +12,24 @@ const passwordFunc = (value) => value.trim() !== "";
 const Signup = () => {
   const {
     value: emailValue,
-    isValid: emailIsValid,
-    hasError: emailHasError,
-    loadedNameHandler: loadedEmailHandler,
+    // isValid: emailIsValid,
+    // hasError: emailHasError,
+    // loadedNameHandler: loadedEmailHandler,
     valueChangeHandler: emailChangeHandler,
-    inputBlurHandler: emailBlurHandler,
-    resetTouch: emailResetTouch,
-    resetAll: emailResetAll,
+    // inputBlurHandler: emailBlurHandler,
+    // resetTouch: emailResetTouch,
+    // resetAll: emailResetAll,
   } = useInput(emailFunc);
 
   const {
     value: passwordValue,
-    isValid: passwordIsValid,
-    hasError: passwordHasError,
-    loadedNameHandler: loadedPasswordHandler,
+    // isValid: passwordIsValid,
+    // hasError: passwordHasError,
+    // loadedNameHandler: loadedPasswordHandler,
     valueChangeHandler: passwordChangeHandler,
-    inputBlurHandler: passwordBlurHandler,
-    resetTouch: passwordResetTouch,
-    resetAll: passwordResetAll,
+    // inputBlurHandler: passwordBlurHandler,
+    // resetTouch: passwordResetTouch,
+    // resetAll: passwordResetAll,
   } = useInput(passwordFunc);
 
   const name = useRef();
@@ -70,7 +70,7 @@ const Signup = () => {
         }
       })
       .then((data) => {
-        console.log(data.idToken);
+        // console.log(data.idToken);
         createNewProfile(
           data.localId,
           name.current.value,

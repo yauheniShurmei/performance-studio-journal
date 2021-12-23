@@ -1,6 +1,6 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
-import { getStorage } from "firebase/storage";
-import { getFirestore } from "firebase/firestore";
+// import { getStorage } from "firebase/storage";
+// import { getFirestore } from "firebase/firestore";
 import { getDatabase, ref, child, get, set, update } from "firebase/database";
 
 const firebaseConfig = {
@@ -16,8 +16,8 @@ if (!getApps().length) {
 } else {
   firebaseApp = getApp();
 }
-let defaultStorage = getStorage(firebaseApp);
-let defaultFirestore = getFirestore(firebaseApp);
+// let defaultStorage = getStorage(firebaseApp);
+// let defaultFirestore = getFirestore(firebaseApp);
 
 // ----- GET DATA --------------------
 const dbRef = ref(getDatabase(firebaseApp));
@@ -26,11 +26,11 @@ get(child(dbRef, "/students"))
     if (snapshot.exists()) {
       //   console.log(snapshot.val());
     } else {
-      console.log("No data available");
+      // console.log("No data available");
     }
   })
   .catch((error) => {
-    console.error(error);
+    // console.error(error);
   });
 // ------ GET DATA --------------
 // ------ WRITE DATA Basic write operations--------------

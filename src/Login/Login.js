@@ -100,7 +100,7 @@ const Login = () => {
             placeholder="hasło"
           />
           {passwordHasError && <p>pole nie może być pustym</p>}
-          <a href="#">Zapomniałeś hasła?</a>
+          {/* <a href="#">Zapomniałeś hasła?</a> */}
           <button type="submit">Login</button>
           <span>
             Nie masz konta?{" "}

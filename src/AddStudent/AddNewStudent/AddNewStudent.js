@@ -5,13 +5,9 @@ import { useContext } from "react/cjs/react.development";
 import AuthContext from "../../store/auth-context";
 
 const NewStudent = (props) => {
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(
-    new Date().getMonth() > 8
-      ? new Date().getMonth() + 1
-      : `0${new Date().getMonth() + 1}`
-  );
   const authCtx = useContext(AuthContext);
+  const [year, setYear] = useState(authCtx.currentYear);
+  const [month, setMonth] = useState(authCtx.currentMonth);
   const lessonDuration = useRef();
 
   const [enteredName, setEnteredName] = useState("");
@@ -31,7 +27,6 @@ const NewStudent = (props) => {
   if (enteredNameIsValid && enteredFamilyNameIsValid) {
     formIsValid = true;
   }
-
   // -----------onBlur -----------------------
   const inputNameBlurHandler = () => {
     setEnteredNameTouched(true);
@@ -78,11 +73,11 @@ const NewStudent = (props) => {
     )
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         props.onStudentAdd();
       })
       .catch((error) => {
-        console.error("Error:", error);
+        // console.error("Error:", error);
       });
     setEnteredName("");
     setEnteredFamilyName("");

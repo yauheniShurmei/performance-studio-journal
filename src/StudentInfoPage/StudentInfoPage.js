@@ -25,26 +25,26 @@ const StudentInfoPage = (props) => {
   // ------------------- CUSTOM HOOK USE INPUT -------------------
   const {
     value: enteredName,
-    isValid: enteredNameIsValid,
+    // isValid: enteredNameIsValid,
     hasError: nameInputHasError,
-    loadedNameHandler: loadedNameHandler,
+    loadedNameHandler,
     valueChangeHandler: nameChangeHandler,
     inputBlurHandler: nameBlurHandler,
     resetTouch: resetNameInput,
   } = useInput((value) => value.trim() !== "");
   const {
     value: enteredFamilyName,
-    isValid: enteredFamilyNameIsValid,
+    // isValid: enteredFamilyNameIsValid,
     hasError: familyNameInputHasError,
     loadedNameHandler: loadedFamilyNameHandler,
     valueChangeHandler: familyNameChangeHandler,
     inputBlurHandler: familyNameBlurHandler,
-    resetTouch: resetFamilyNameInput,
+    // resetTouch: resetFamilyNameInput,
   } = useInput((value) => value.trim() !== "");
   // ------------------- CUSTOM HOOK USE INPUT -------------------
 
   useEffect(() => {
-    console.log("[USE EFFECT STUDENT INFO PAGE]");
+    // console.log("[USE EFFECT STUDENT INFO PAGE]");
     getStudentLessons();
     lessonDuration.current.value = student.lessonDuration;
     student.name && loadedNameHandler(student.name);
@@ -67,6 +67,7 @@ const StudentInfoPage = (props) => {
               data[year][props.selectedStudentForChange.key].lessons
             );
           }
+          return null;
         });
         setLessonHistoryToSend(month);
         setLessonsHistory(years);
@@ -87,7 +88,7 @@ const StudentInfoPage = (props) => {
     };
 
     for (let year of lessonsHistory) {
-      console.log(year);
+      // console.log(year);
       fetch(
         `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${year}/${props.selectedStudentForChange.key}/student_profile.json`,
         {

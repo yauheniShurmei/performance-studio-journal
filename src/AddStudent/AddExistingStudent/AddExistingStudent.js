@@ -6,137 +6,125 @@ import AddNewStudent from "../AddNewStudent/AddNewStudent";
 import classes from "./AddExistingStudent.module.scss";
 
 const AddExistingStudent = (props) => {
-  console.log("[AddExistingStudent]");
   const authCtx = useContext(AuthContext);
-  const [students, setStudents] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(props.date[1]);
+  const [data, setData] = useState();
+  const [selectedYear, setSelectedYear] = useState();
   const [years, setYears] = useState([]);
-  const [isChanged, setIsChanged] = useState(false);
-  const [sortBy, setSortBy] = useState("default");
+  const [students, setStudents] = useState([]);
+  const [isSorted, setIsSorted] = useState(false);
+  const [sortBy, setSortBy] = useState();
   const [isNewStudentComponent, setIsNewStudentComponent] = useState(false);
 
-  // ---------------------------  useEffect which run only First Time ---------------------------
+  console.log("COMPONENT");
+
   useEffect(() => {
-    console.log("[USE EFFECT] ADD EXISTING STUDENT");
+    console.log("USE EFEECT");
     // --------------------------- Get All Years For Options---------------------------
     fetch(
       `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years.json`
     )
       .then((res) => res.json())
       .then((data) => {
-        data && setYears([...Object.keys(data), "all"]);
+        if (data) {
+          const years = [...Object.keys(data), "all"];
+          const year = [...Object.keys(data), "all"].includes(
+            String(authCtx.currentYear)
+          )
+            ? String(authCtx.currentYear)
+            : "all";
+          setData(data);
+          setYears(years);
+          setSelectedYear(year);
+          getStudents(year, years, data);
+        }
       });
     // --------------------------- Get All Years For Options---------------------------
-    getStudents(selectedYear);
-  }, [props.date, selectedYear]);
-  // ---------------------------  useEffect which run only First Time ---------------------------
+    // getStudents(selectedYear);
+  }, [
+    authCtx.currentYear,
+    setSelectedYear,
+    setYears,
+    authCtx.localId,
+    setData,
+  ]);
 
-  const addStudentHandler = (event) => {
-    console.log("[addStudentHandler FUNCTION]");
-
-    const student = {
-      lessons: event.lessons,
-      student_profile: event.student_profile,
-    };
-    student.lessons[props.date[0]] = [0, 0, 0, 0, 0, 0, 0, 0];
-
-    fetch(
-      `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${props.date[1]}/${event.student_profile.key}.json`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(student),
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        props.onStudentAdd();
-        props.openCloseHandler();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
-
-  const changeHandler = (e) => {
-    setStudents([]);
-    setSelectedYear(e.target.value);
-    getStudents(e.target.value);
-    sortHandler(sortBy);
-  };
-
-  useEffect(() => {
-    sortHandler(sortBy);
-  }, [students]);
-
-  const getStudents = (e) => {
-    console.log("[getStudents FUNCTION]");
+  function getStudents(year, years, data) {
+    const keysOfAllStudentsArray = [];
+    let unitedDataObject = {};
     const searchStudents = [];
-    if (e === "all") {
-      fetch(
-        `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years.json`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          // ----------------  get the object. data = {2020: {students}, 2021: {students}} ----------------
-          const arrayOfYears = Object.keys(data); // arrayOfYears = ["2020", "2021"]
-          const keysOfAllStudentsArray = [];
 
-          for (let year of arrayOfYears) {
-            Object.keys(data[year]).map((key) => {
-              keysOfAllStudentsArray.push(key);
-            });
-          }
+    if (year === "all") {
+      for (let year of years) {
+        if (year !== "all") {
+          Object.keys(data[year]).map((key) => {
+            keysOfAllStudentsArray.push(key);
+          });
+          unitedDataObject = { ...unitedDataObject, ...data[year] };
+        }
+      }
+      const newArrayWithNoRepeatKeys = [...new Set(keysOfAllStudentsArray)];
 
-          for (let year of arrayOfYears) {
-            // year = "2020"
-            // ----------------  get the one year and push every student in list ----------------
-            Object.keys(data[year]).map((key) => {
-              // data[year] = {-Masffakjdbv: {lessons: {}, student_profile: {}}}
-              // key = "-Masffakjdbv"
-              if (
-                authCtx.studentsFromCurrentYear[key]?.lessons[props.date[0]]
-              ) {
-                return null;
-              } else {
-                data[year][key].student_profile.key = key;
-                searchStudents.push(data[year][key]);
-                return null;
-              }
-            });
-            // ----------------  get the one year and push every student in list ----------------
-          }
-          setStudents([...searchStudents]);
-        });
+      for (let key of newArrayWithNoRepeatKeys) {
+        if (
+          authCtx.studentsFromCurrentYear[key]?.lessons[authCtx.currentMonth]
+        ) {
+        } else if (unitedDataObject[key]) {
+          unitedDataObject[key].student_profile.key = key;
+          searchStudents.push(unitedDataObject[key]);
+        }
+      }
+      if (isSorted) {
+        sortHandler(sortBy, searchStudents);
+        setStudents(searchStudents);
+      } else {
+        setStudents(searchStudents);
+      }
     } else {
-      fetch(
-        `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${e}.json`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          data &&
-            Object.keys(data).map((key) => {
-              if (
-                authCtx.studentsFromCurrentYear[key]?.lessons[props.date[0]]
-              ) {
-                return null;
-              } else {
-                data[key].student_profile.key = key;
-                searchStudents.push(data[key]);
-                return null;
-              }
-            });
-          setStudents([...searchStudents]);
-        });
+      Object.keys(data[year]).map((key) => {
+        keysOfAllStudentsArray.push(key);
+      });
+      unitedDataObject = { ...data[year] };
+      for (let key of keysOfAllStudentsArray) {
+        if (
+          authCtx.studentsFromCurrentYear[key]?.lessons[authCtx.currentMonth]
+        ) {
+        } else if (unitedDataObject[key]) {
+          unitedDataObject[key].student_profile.key = key;
+          searchStudents.push(unitedDataObject[key]);
+        }
+      }
+      if (isSorted) {
+        sortHandler(sortBy, searchStudents);
+        setStudents(searchStudents);
+      } else {
+        setStudents(searchStudents);
+      }
     }
+  }
+
+  // ---------------------switch between newStudent and ExistStudent-----------------------
+  const changeComponentHandler = (e) => {
+    setIsNewStudentComponent(e);
+  };
+  // ---------------------switch between newStudent and ExistStudent-----------------------
+  // ------------------------------changeHandler------------------------------
+  const changeHandler = (e) => {
+    setSelectedYear(e.target.value);
+    getStudents(e.target.value, years, data);
+  };
+  // ------------------------------END------------------------------
+  // ------------------------------sortHandler------------------------------
+  const changeSortHandler = (event) => {
+    setSortBy(event.target.value);
+    sortHandler(event.target.value, students);
   };
 
-  const sortHandler = (e) => {
-    const method = typeof e === "object" ? e.target.value : sortBy;
-    if (method === "alfabetImie") {
-      const sortedStudents = students.sort(function compare(a, b) {
+  const sortHandler = (event, students) => {
+    console.log("Method SORTINg");
+    let sortedStudents = [];
+    if (event === "alfabetImie") {
+      setIsSorted(true);
+      sortedStudents = students.sort(function compare(a, b) {
         const nameA = a.student_profile.name.toUpperCase(); // ignore upper and lowercase
         const nameB = b.student_profile.name.toUpperCase(); // ignore upper and lowercase
         if (nameA < nameB) {
@@ -148,50 +136,50 @@ const AddExistingStudent = (props) => {
         return 0;
       });
       setStudents(sortedStudents);
-      if (typeof e === "object") {
-        setSortBy(e.target.value);
-      }
-      setIsChanged(!isChanged);
+    } else {
+      setIsSorted(false);
     }
   };
-  // switch between newStudent and ExistStudent
-  const changeComponentHandler = (e) => {
-    setIsNewStudentComponent(e);
-  };
-  // switch between newStudent and ExistStudent
+  // ------------------------------END------------------------------
+  // ------------------------------addStudentHandler------------------------------
+  const addStudentHandler = (event) => {};
+  // ------------------------------END------------------------------
 
   const sectionOne = (
     <div>
       <div>
         <select onChange={changeHandler} value={selectedYear}>
           {years.map((year) => {
-            if (year === String(props.date[1])) {
-              return <option key={year} value={year}>{`${year}`}</option>;
-            }
-            return <option key={year} value={year}>{`${year}`}</option>;
+            return (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            );
           })}
         </select>
-        <select onChange={(e) => sortHandler(e)}>
-          <option value={"default"}>-sortować-</option>
-          <option value={"alfabetImie"}>
-            sortować alfabetycznie po imieniu
-          </option>
+        <select onChange={changeSortHandler} value={sortBy}>
+          <option value={"default"}>-sortowanie-</option>
+          <option value={"alfabetImie"}>alfabetycznie po imieniu</option>
         </select>
       </div>
-      <ul>
-        {students.length !== 0 && students !== "undefined"
-          ? students.map((student) => {
-              return (
-                <li
-                  key={student.student_profile.key}
-                  onClick={() => addStudentHandler(student)}
-                >
-                  {`${student.student_profile.name} ${student.student_profile.familyName}`}
-                </li>
-              );
-            })
-          : null}
-      </ul>
+      <div className={classes.listOfStudents}>
+        <ul>
+          {students.length !== 0 && students !== "undefined"
+            ? students.map((student, index) => {
+                return (
+                  <li
+                    key={student.student_profile.key}
+                    onClick={() => addStudentHandler(student)}
+                  >
+                    {`${index + 1}. ${student.student_profile.name} ${
+                      student.student_profile.familyName
+                    }`}
+                  </li>
+                );
+              })
+            : "nie ma informacji"}
+        </ul>
+      </div>
       <div>
         <button
           onClick={(e) => {

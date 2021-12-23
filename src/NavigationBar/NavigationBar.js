@@ -27,13 +27,14 @@ const NavigationBar = () => {
                 //     };
                 //   }}
                 to={!isLoggedIn ? "/" : "/table"}
+                onClick={() => authCtx.resetDate()}
               >
                 Performanse Studio Dziennik
               </NavLink>
             </li>
           </div>
           <div>
-            {!isLoggedIn && location.pathname != "/login" && (
+            {!isLoggedIn && location.pathname !== "/login" && (
               <li>
                 <Link to="/login">Login</Link>
               </li>
