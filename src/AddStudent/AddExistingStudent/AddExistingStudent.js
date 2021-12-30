@@ -15,8 +15,6 @@ const AddExistingStudent = (props) => {
   const [sortBy, setSortBy] = useState();
   const [isNewStudentComponent, setIsNewStudentComponent] = useState(false);
 
-  console.log("COMPONENT");
-
   useEffect(() => {
     console.log("USE EFEECT");
     // --------------------------- Get All Years For Options---------------------------
@@ -142,12 +140,38 @@ const AddExistingStudent = (props) => {
   };
   // ------------------------------END------------------------------
   // ------------------------------addStudentHandler------------------------------
-  const addStudentHandler = (event) => {};
+  const addStudentHandler = (event) => {
+    const student = {
+      lessons: event.lessons,
+      student_profile: event.student_profile,
+    };
+    student.lessons[authCtx.currentMonth] = [0, 0, 0, 0, 0, 0, 0, 0];
+    console.log("[addStudentHandler FUNCTION]", student);
+
+    fetch(
+      `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${authCtx.currentYear}/${event.student_profile.key}.json`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(student),
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        props.onStudentAdd();
+        props.openCloseHandler();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
   // ------------------------------END------------------------------
 
   const sectionOne = (
     <div>
-      <div>
+      <div className={classes.section}>
         <select onChange={changeHandler} value={selectedYear}>
           {years.map((year) => {
             return (

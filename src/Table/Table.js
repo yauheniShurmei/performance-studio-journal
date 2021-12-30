@@ -8,10 +8,10 @@ import { useContext } from "react/cjs/react.development";
 import AuthContext from "../store/auth-context";
 import { useNavigate } from "react-router-dom";
 import ConfirmWindow from "../ConfirmWindow/ConfirmWindow";
+import useEscape from "../hooks/escape-hook";
 
 const Table = (props) => {
   // console.log("[TABLE_COPY.JS]");
-
   const [data, setData] = useState();
   const [isOpenStudentInfo, setIsOpenStudentInfo] = useState(false);
   const [isOpenConfirmedWindow, setIsOpenConfirmedWindow] = useState(false);
@@ -20,8 +20,18 @@ const Table = (props) => {
   const [isAddFromLastMonth, setIsAddFromLastMonth] = useState(false);
   const [studentToDeleteInformation, setStudentToDeleteInformation] =
     useState();
+  const [
+    isShowButtonAddStudentFromLastMonth,
+    setIsShowButtonAddStudentFromLastMonth,
+  ] = useState(false);
+  const [previewMonthStudents, setPreviewMonthStudents] = useState([]);
   const authCtx = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEscape(() => {
+    setIsOpenConfirmedWindow(false);
+    setIsOpenStudentInfo(false);
+  });
 
   const changeMonthHandler = (event) => {
     authCtx.setMonthFunction(event.target.value);
@@ -162,18 +172,18 @@ const Table = (props) => {
             setData(0);
           }
           setSumaLekcji(sumaLekcji);
+          checkLastMonthAndShowTheButton();
         } else {
           authCtx.getStudents({});
           setData(0);
         }
       })
-      // -------------------------DO IF DATA IS -------------------------
+      // -------------------------DO IF DATA IS END -------------------------
       // -------------------------Catch the Err if NO DATA -------------------------
       .catch((err) => {
-        // console.log("[IS NO DATA]");
         alert(err.message);
       });
-    // -------------------------Catch the Err if NO DATA -------------------------
+    // -------------------------Catch the Err if NO DATA END-------------------------
   };
   // ----------------------- MAIN FUNCTION GET STUDENTS -----------------------
   useEffect(() => {
@@ -200,13 +210,16 @@ const Table = (props) => {
   // -----------------addStudent----------------- //
   async function addStudentHandler(students, month, year) {
     // console.log("[addStudentHandler FUNCTION]");
+    const isFirstMonth = month === "01";
 
     for (let student of students) {
+      const lessons = isFirstMonth ? {} : student.lessons;
       const newStudent = {
-        lessons: student.lessons,
+        lessons: lessons,
         student_profile: student.student_profile,
       };
-      student.lessons[month] = [0, 0, 0, 0, 0, 0, 0, 0];
+      newStudent.lessons[month] = [0, 0, 0, 0, 0, 0, 0, 0];
+      console.log(newStudent);
 
       await fetch(
         `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${year}/${student.student_profile.key}.json`,
@@ -221,12 +234,42 @@ const Table = (props) => {
         .then((response) => response.json())
         .then((data) => {})
         .catch((error) => {
-          // console.error("Error:", error);
+          console.error("Error:", error);
         });
     }
   }
   // -----------------addStudent-----------------
 
+  // --------------------------- FUNCTION CHECK LAST MONTH AN SHOW THE BUTTON? ---------------------------
+  function checkLastMonthAndShowTheButton() {
+    let searchingMonth;
+    let searchingYear;
+    if (Number(authCtx.currentMonth) === 1) {
+      searchingMonth = 12;
+      searchingYear = Number(authCtx.currentYear) - 1;
+    } else {
+      searchingMonth = Number(authCtx.currentMonth) - 1;
+      searchingYear = authCtx.currentYear;
+    }
+
+    if (searchingMonth < 10) {
+      searchingMonth = `0${searchingMonth}`;
+    }
+
+    let students = [];
+    findStudentFromSelectedMonth(searchingMonth, searchingYear).then((res) => {
+      if (res.students) {
+        students = [...res.students];
+        console.log(students);
+        setPreviewMonthStudents(students);
+        setIsShowButtonAddStudentFromLastMonth(true);
+      } else {
+        setPreviewMonthStudents([]);
+        setIsShowButtonAddStudentFromLastMonth(false);
+      }
+    });
+  }
+  // --------------------------- FUNCTION CHECK LAST MONTH AN SHOW THE BUTTON? END ---------------------------
   // --------------------------- FINDING PREVIEW MONTH ---------------------------
   const addStudentsFromPreviewMonth = () => {
     let searchingMonth;
@@ -244,20 +287,62 @@ const Table = (props) => {
     }
 
     let students = [];
-    findStudentFromSelectedMonth(searchingMonth, searchingYear).then((res) => {
-      students = [...res.students];
-      // console.log(students);
-      addStudentHandler(
-        students,
-        authCtx.currentMonth,
-        authCtx.currentYear
-      ).then((res) => setIsAddFromLastMonth(!isAddFromLastMonth));
-    });
+    findStudentFromSelectedMonth(searchingMonth, searchingYear)
+      .then((res) => {
+        students = [...res.students];
+        console.log(students);
+        addStudentHandler(
+          students,
+          authCtx.currentMonth,
+          authCtx.currentYear
+        ).then((res) => setIsAddFromLastMonth(!isAddFromLastMonth));
+      })
+      .catch((err) => {
+        console.log("ERROR", err);
+      });
   };
-  // --------------------------- FINDING PREVIEW MONTH ---------------------------
+  // --------------------------- FINDING PREVIEW MONTH END---------------------------
+  // --------------------------- CHANGE DATE BY ARROW FUNCTION---------------------------
+  const changeDateByArrow = (way) => {
+    console.log(YEARS[YEARS.length - 1].value);
+
+    if (way === "left" && Number(authCtx.currentMonth) !== 1) {
+      const newMonth =
+        Number(authCtx.currentMonth) - 1 < 10
+          ? `0${Number(authCtx.currentMonth) - 1}`
+          : `${Number(authCtx.currentMonth) - 1}`;
+      authCtx.setMonthFunction(newMonth);
+    } else if (
+      way === "left" &&
+      Number(authCtx.currentMonth) === 1 &&
+      Number(authCtx.currentYear) - 1 >= YEARS[0].value
+    ) {
+      const newYear = `${Number(authCtx.currentYear) - 1}`;
+      authCtx.setMonthFunction("12");
+      authCtx.setYearFunction(newYear);
+    }
+
+    if (way === "right" && Number(authCtx.currentMonth) !== 12) {
+      const newMonth =
+        Number(authCtx.currentMonth) + 1 < 10
+          ? `0${Number(authCtx.currentMonth) + 1}`
+          : `${Number(authCtx.currentMonth) + 1}`;
+      authCtx.setMonthFunction(newMonth);
+    } else if (
+      way === "right" &&
+      Number(authCtx.currentMonth) === 12 &&
+      Number(authCtx.currentYear) + 1 <= YEARS[YEARS.length - 1].value
+    ) {
+      const newYear = `${Number(authCtx.currentYear) + 1}`;
+      authCtx.setMonthFunction("01");
+      authCtx.setYearFunction(newYear);
+    }
+  };
+  // --------------------------- CHANGE DATE BY ARROW FUNCTION END---------------------------
 
   const selectElements = (
-    <>
+    <div className={classes.dataSection}>
+      <img src="left_arrow.png" onClick={() => changeDateByArrow("left")} />
       <select
         value={authCtx.currentYear}
         id="year-select"
@@ -284,25 +369,28 @@ const Table = (props) => {
           );
         })}
       </select>
-    </>
+      <img src="right_arrow.png" onClick={() => changeDateByArrow("right")} />
+    </div>
   );
 
   if (data === 0) {
     return (
-      <div>
-        <h1>Nie ma Danych</h1>
-        {selectElements}
-        <AddStudent
-          date={[authCtx.currentMonth, authCtx.currentYear]}
-          onStudentAdd={() => getDataFromServer()}
-        />
-        <div>
-          <button onClick={() => navigate(0)}>Cofnij</button>
-          <button onClick={addStudentsFromPreviewMonth}>
-            Dodaj uczniów z zeszłego miesiąca
-          </button>
+      <section className={classes.sectionNoData}>
+        <div className={classes.mainNoData}>
+          <h1>Nie ma Danych</h1>
+          {selectElements}
+          <AddStudent onStudentAdd={() => getDataFromServer()} />
+          <div>
+            <button onClick={() => navigate(0)}>Cofnij</button>
+            {isShowButtonAddStudentFromLastMonth &&
+              previewMonthStudents.length !== 0 && (
+                <button onClick={addStudentsFromPreviewMonth}>
+                  {`Możesz dodać ${previewMonthStudents.length} uczniów z zeszłego miesiąca`}
+                </button>
+              )}
+          </div>
         </div>
-      </div>
+      </section>
     );
   }
   // SPINER

@@ -68,7 +68,6 @@ export const AuthContextProvider = (props) => {
 
   // -------------DELETE STUDENT HANDLER --------------------------------
   const deleteStudentHandler = (key, dataIsChange, openCloseHandler) => {
-    console.log("TA DAAAA", key);
     let isDeleteEntireStudentOrOneMonthData;
     if (Object.entries(studentsFromCurrentYear[key].lessons).length < 2) {
       isDeleteEntireStudentOrOneMonthData = `https://performance-lessons-default-rtdb.firebaseio.com/users/${localId}/work_years/${year}/${key}.json`;
