@@ -24,6 +24,7 @@ const AddExistingStudent = (props) => {
       .then((res) => res.json())
       .then((data) => {
         if (data) {
+          console.log(data[authCtx.currentYear]);
           const years = [...Object.keys(data), "all"];
           const year = [...Object.keys(data), "all"].includes(
             String(authCtx.currentYear)
@@ -141,12 +142,20 @@ const AddExistingStudent = (props) => {
   // ------------------------------END------------------------------
   // ------------------------------addStudentHandler------------------------------
   const addStudentHandler = (event) => {
+    let lessons = {};
+    if (
+      data[authCtx.currentYear] &&
+      data[authCtx.currentYear][event.student_profile.key] &&
+      data[authCtx.currentYear][event.student_profile.key].lessons
+    ) {
+      lessons = data[authCtx.currentYear][event.student_profile.key].lessons;
+    }
+    lessons[authCtx.currentMonth] = [0, 0, 0, 0, 0, 0, 0, 0];
     const student = {
-      lessons: event.lessons,
+      lessons: lessons,
       student_profile: event.student_profile,
     };
-    student.lessons[authCtx.currentMonth] = [0, 0, 0, 0, 0, 0, 0, 0];
-    console.log("[addStudentHandler FUNCTION]", student);
+    // console.log("[addStudentHandler FUNCTION]", student);
 
     fetch(
       `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${authCtx.currentYear}/${event.student_profile.key}.json`,

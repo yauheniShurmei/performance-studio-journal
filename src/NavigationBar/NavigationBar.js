@@ -19,34 +19,34 @@ const NavigationBar = () => {
           <div>
             <li>
               <NavLink
-                //   style={({ isActive }) => {
-                //     return {
-                //       display: "block",
-                //       margin: "1rem 0",
-                //       color: isActive ? "red" : "",
-                //     };
-                //   }}
+                // style={({ isActive }) => {
+                //   return {
+                //     display: "block",
+                //     margin: "1rem 0",
+                //     color: isActive ? "red" : "",
+                //   };
+                // }}
                 to={!isLoggedIn ? "/" : "/table"}
                 onClick={() => authCtx.resetDate()}
               >
-                Performanse Studio Dziennik
+                PERFORMANCE STUDIO DZIENNIK
               </NavLink>
             </li>
           </div>
           <div>
             {!isLoggedIn && location.pathname !== "/login" && (
               <li>
-                <Link to="/login">Login</Link>
+                <Link to="/login">LOGIN</Link>
               </li>
             )}
             {isLoggedIn && (
               <li>
-                <button onClick={logoutHandler}>Logout</button>
+                <button onClick={logoutHandler}>LOGOUT</button>
               </li>
             )}
             {isLoggedIn && (
               <li>
-                <Link to="#">Profile</Link>
+                <Link to="#">PROFILE</Link>
               </li>
             )}
           </div>

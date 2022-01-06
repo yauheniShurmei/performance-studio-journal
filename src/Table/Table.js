@@ -174,6 +174,7 @@ const Table = (props) => {
           setSumaLekcji(sumaLekcji);
           checkLastMonthAndShowTheButton();
         } else {
+          checkLastMonthAndShowTheButton();
           authCtx.getStudents({});
           setData(0);
         }
@@ -208,21 +209,28 @@ const Table = (props) => {
     return sumaLekcji[0] * 20 + sumaLekcji[1] * 40;
   };
   // -----------------addStudent----------------- //
-  async function addStudentHandler(students, month, year) {
+  async function addStudentHandler(students) {
     // console.log("[addStudentHandler FUNCTION]");
-    const isFirstMonth = month === "01";
 
     for (let student of students) {
-      const lessons = isFirstMonth ? {} : student.lessons;
+      let lessons = {};
+      if (
+        authCtx.studentsFromCurrentYear &&
+        authCtx.studentsFromCurrentYear[student.student_profile.key] &&
+        authCtx.studentsFromCurrentYear[student.student_profile.key].lessons
+      ) {
+        lessons =
+          authCtx.studentsFromCurrentYear[student.student_profile.key].lessons;
+      }
       const newStudent = {
         lessons: lessons,
         student_profile: student.student_profile,
       };
-      newStudent.lessons[month] = [0, 0, 0, 0, 0, 0, 0, 0];
+      newStudent.lessons[authCtx.currentMonth] = [0, 0, 0, 0, 0, 0, 0, 0];
       console.log(newStudent);
 
       await fetch(
-        `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${year}/${student.student_profile.key}.json`,
+        `https://performance-lessons-default-rtdb.firebaseio.com/users/${authCtx.localId}/work_years/${authCtx.currentYear}/${student.student_profile.key}.json`,
         {
           method: "PUT",
           headers: {
@@ -291,11 +299,9 @@ const Table = (props) => {
       .then((res) => {
         students = [...res.students];
         console.log(students);
-        addStudentHandler(
-          students,
-          authCtx.currentMonth,
-          authCtx.currentYear
-        ).then((res) => setIsAddFromLastMonth(!isAddFromLastMonth));
+        addStudentHandler(students).then((res) =>
+          setIsAddFromLastMonth(!isAddFromLastMonth)
+        );
       })
       .catch((err) => {
         console.log("ERROR", err);

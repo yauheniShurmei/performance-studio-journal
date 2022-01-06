@@ -28,6 +28,7 @@
   justify-content: center;
   align-items: center;
   select {
+    text-align: center;
     margin: 5px;
     padding: 5px;
     border: none;
@@ -39,6 +40,7 @@
     height: 1rem;
     width: 1rem;
     cursor: pointer;
+    user-select: none;
   }
 }
 
@@ -69,8 +71,9 @@
   }
 
   button {
-    width: 100%;
+    // width: 100%;
+    padding: 0 30px;
     min-height: 30px;
-    margin: 10px 10px;
+    margin: 10px auto;
   }
 }
